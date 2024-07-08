@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: homework-pod
+  namespace: homework
+spec:
+  containers:
+    - name: web-server
+      image: python:3.10-slim
+      command: ["python", "-m", "http.server", "8000"]
+      volumeMounts:
+        - mountPath: /homework
+          name: shared-volume
+    - name: init-container
+      image: busybox
+      command: ['sh', '-c', 'cp index.html /homework/']
+      volumeMounts:
+        - mountPath: /init
+          name: shared-volume
+        - mountPath: /homework
+          readOnly: true
+          name: shared-volume
+  volumes:
+    - name: shared-volume
+      emptyDir: {}
+  initContainers:
+    - name: cleanup-container
+      image: busybox
+      command: ['sh', '-c', 'rm /homework/index.html']
+      volumeMounts:
+        - mountPath: /homework
+          name: shared-volume
